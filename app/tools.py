@@ -445,7 +445,7 @@ async def create_python_file_handler(filename: str, content_description: str):
 
         logger.info(f"💾 Python file '{filename}' created successfully at {filepath}")
         await cl.Message(
-            content=f"Python file '{filename}' created successfully based on the topic '{topic}'."
+            content=f"Python file '{filename}' created successfully based on the topic '{content_description}'."
         ).send()
         return f"Python file '{filename}' created successfully."
 
