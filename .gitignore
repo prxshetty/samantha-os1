@@ -13,7 +13,7 @@ __pycache__/
 .env
 
 # env   
-venv/
+.venv/
 
 # Others
 scratchpad/
