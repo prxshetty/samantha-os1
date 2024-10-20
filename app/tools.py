@@ -216,7 +216,6 @@ async def generate_image_handler(prompt):
 
 generate_image = (generate_image_def, generate_image_handler)
 
-# Define the new tool for internet search
 internet_search_def = {
     "name": "internet_search",
     "description": "Performs an internet search using the Tavily API.",
