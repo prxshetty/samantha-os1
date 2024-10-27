@@ -370,9 +370,9 @@ create_python_file_def = {
                 "type": "string",
                 "description": "The name of the Python file to be created (e.g., 'script.py').",
             },
-            "topic": {
+            "content_description": {
                 "type": "string",
-                "description": "The topic or content description for the Python file (e.g., 'Generate a random number').",
+                "description": "The content description for the Python file (e.g., 'Generate a random number').",
             },
         },
         "required": ["filename", "topic"],
