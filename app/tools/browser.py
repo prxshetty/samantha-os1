@@ -43,6 +43,7 @@ async def open_browser_handler(prompt: str):
             "https://www.chatgpt.com",
             "https://www.tesla.com",
             "https://www.spacex.com",
+            "https://www.goodreads.com",
         ]
         browser_urls_str = "\n".join(browser_urls)
         browser = "chrome"
