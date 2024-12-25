@@ -78,7 +78,7 @@ This project includes several powerful tools:
 - **LinkedIn Post Drafting**: Create LinkedIn posts based on given topics using an AI model.
 - **Python Script Generation**: Generate Python scripts on-demand based on user-provided topics.
 - **Python File Execution**: Create and execute Python scripts directly from the assistant.
-- **🆕 Database Interaction**: Convert natural language to SQL and execute database commands with formatted results.
+- **🆕 Database Interaction**: Convert natural language to SQL and execute db commands with formatted results.
 - **🆕 Email Drafting**: Compose professional, personalized emails with appropriate subject lines and content.
 
 ## License
