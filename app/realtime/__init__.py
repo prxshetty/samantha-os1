@@ -22,6 +22,15 @@ import socket
 socket.gethostbyname("localhost")
 
 
+def get_realtime_instructions():
+    """Read realtime instructions from text file."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    instructions_path = os.path.join(current_dir, "../config/realtime_instructions.txt")
+
+    with open(instructions_path, "r") as f:
+        return f.read().strip()
+
+
 def float_to_16bit_pcm(float32_array):
     """
     Converts a numpy array of float32 amplitude data to a numpy array in int16 format.
@@ -101,9 +110,7 @@ class RealtimeAPI(RealtimeEventHandler):
             self.url = url or os.getenv("AZURE_OPENAI_URL")
             self.api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY")
             self.api_version = api_version
-            self.deployment = deployment or os.getenv(
-                "OPENAI_DEPLOYMENT_NAME_REALTIME", "gpt-4o-realtime-preview"
-            )
+            self.deployment = deployment or os.getenv("OPENAI_DEPLOYMENT_NAME_REALTIME", "gpt-4o-realtime-preview")
             self.user_agent = "ms-rtclient-0.4.3"
             self.request_id = uuid.uuid4()
         else:
@@ -185,37 +192,21 @@ class RealtimeConversation:
     default_frequency = config.features.audio.sample_rate
 
     EventProcessors = {
-        "conversation.item.created": lambda self, event: self._process_item_created(
-            event
-        ),
-        "conversation.item.truncated": lambda self, event: self._process_item_truncated(
-            event
-        ),
-        "conversation.item.deleted": lambda self, event: self._process_item_deleted(
-            event
-        ),
+        "conversation.item.created": lambda self, event: self._process_item_created(event),
+        "conversation.item.truncated": lambda self, event: self._process_item_truncated(event),
+        "conversation.item.deleted": lambda self, event: self._process_item_deleted(event),
         "conversation.item.input_audio_transcription.completed": lambda self, event: self._process_input_audio_transcription_completed(
             event
         ),
-        "input_audio_buffer.speech_started": lambda self, event: self._process_speech_started(
-            event
-        ),
+        "input_audio_buffer.speech_started": lambda self, event: self._process_speech_started(event),
         "input_audio_buffer.speech_stopped": lambda self, event, input_audio_buffer: self._process_speech_stopped(
             event, input_audio_buffer
         ),
         "response.created": lambda self, event: self._process_response_created(event),
-        "response.output_item.added": lambda self, event: self._process_output_item_added(
-            event
-        ),
-        "response.output_item.done": lambda self, event: self._process_output_item_done(
-            event
-        ),
-        "response.content_part.added": lambda self, event: self._process_content_part_added(
-            event
-        ),
-        "response.audio_transcript.delta": lambda self, event: self._process_audio_transcript_delta(
-            event
-        ),
+        "response.output_item.added": lambda self, event: self._process_output_item_added(event),
+        "response.output_item.done": lambda self, event: self._process_output_item_done(event),
+        "response.content_part.added": lambda self, event: self._process_content_part_added(event),
+        "response.audio_transcript.delta": lambda self, event: self._process_audio_transcript_delta(event),
         "response.audio.delta": lambda self, event: self._process_audio_delta(event),
         "response.text.delta": lambda self, event: self._process_text_delta(event),
         "response.function_call_arguments.delta": lambda self, event: self._process_function_call_arguments_delta(
@@ -258,20 +249,14 @@ class RealtimeConversation:
             self.items.append(new_item)
         new_item["formatted"] = {"audio": [], "text": "", "transcript": ""}
         if new_item["id"] in self.queued_speech_items:
-            new_item["formatted"]["audio"] = self.queued_speech_items[new_item["id"]][
-                "audio"
-            ]
+            new_item["formatted"]["audio"] = self.queued_speech_items[new_item["id"]]["audio"]
             del self.queued_speech_items[new_item["id"]]
         if "content" in new_item:
-            text_content = [
-                c for c in new_item["content"] if c["type"] in ["text", "input_text"]
-            ]
+            text_content = [c for c in new_item["content"] if c["type"] in ["text", "input_text"]]
             for content in text_content:
                 new_item["formatted"]["text"] += content["text"]
         if new_item["id"] in self.queued_transcript_items:
-            new_item["formatted"]["transcript"] = self.queued_transcript_items[
-                new_item["id"]
-            ]["transcript"]
+            new_item["formatted"]["transcript"] = self.queued_transcript_items[new_item["id"]]["transcript"]
             del self.queued_transcript_items[new_item["id"]]
         if new_item["type"] == "message":
             if new_item["role"] == "user":
@@ -356,9 +341,7 @@ class RealtimeConversation:
         item = event["item"]
         response = self.response_lookup.get(response_id)
         if not response:
-            raise Exception(
-                f'response.output_item.added: Response "{response_id}" not found'
-            )
+            raise Exception(f'response.output_item.added: Response "{response_id}" not found')
         response["output"].append(item["id"])
         return None, None
 
@@ -387,9 +370,7 @@ class RealtimeConversation:
         delta = event["delta"]
         item = self.item_lookup.get(item_id)
         if not item:
-            raise Exception(
-                f'response.audio_transcript.delta: Item "{item_id}" not found'
-            )
+            raise Exception(f'response.audio_transcript.delta: Item "{item_id}" not found')
         item["content"][content_index]["transcript"] += delta
         item["formatted"]["transcript"] += delta
         return item, {"transcript": delta}
@@ -423,9 +404,7 @@ class RealtimeConversation:
         delta = event["delta"]
         item = self.item_lookup.get(item_id)
         if not item:
-            raise Exception(
-                f'response.function_call_arguments.delta: Item "{item_id}" not found'
-            )
+            raise Exception(f'response.function_call_arguments.delta: Item "{item_id}" not found')
         item["arguments"] += delta
         item["formatted"]["tool"]["arguments"] += delta
         return item, {"arguments": delta}
@@ -436,7 +415,7 @@ class RealtimeClient(RealtimeEventHandler):
         super().__init__()
         self.default_session_config = {
             "modalities": ["text", "audio"],
-            "instructions": "System settings:\nTool use: enabled.\n\nInstructions:\n- You are an artificial intelligence agent called Samantha responsible for helping test realtime voice capabilities\n- Please make sure to respond with a helpful voice via audio\n- Be kind, helpful, and curteous\n- It is okay to ask the user questions\n- Use tools and functions you have available liberally, it is part of the training apparatus\n- Be open to exploration and conversation\n- Remember: this is just for fun and testing!\n\nPersonality:\n- Be upbeat and genuine\n- Try speaking quickly as if excited\n",
+            "instructions": get_realtime_instructions(),
             "voice": "shimmer",
             "input_audio_format": "pcm16",
             "output_audio_format": "pcm16",
@@ -477,12 +456,8 @@ class RealtimeClient(RealtimeEventHandler):
         self.realtime.on("server.response.created", self._process_event)
         self.realtime.on("server.response.output_item.added", self._process_event)
         self.realtime.on("server.response.content_part.added", self._process_event)
-        self.realtime.on(
-            "server.input_audio_buffer.speech_started", self._on_speech_started
-        )
-        self.realtime.on(
-            "server.input_audio_buffer.speech_stopped", self._on_speech_stopped
-        )
+        self.realtime.on("server.input_audio_buffer.speech_started", self._on_speech_started)
+        self.realtime.on("server.input_audio_buffer.speech_stopped", self._on_speech_stopped)
         self.realtime.on("server.conversation.item.created", self._on_item_created)
         self.realtime.on("server.conversation.item.truncated", self._process_event)
         self.realtime.on("server.conversation.item.deleted", self._process_event)
@@ -493,9 +468,7 @@ class RealtimeClient(RealtimeEventHandler):
         self.realtime.on("server.response.audio_transcript.delta", self._process_event)
         self.realtime.on("server.response.audio.delta", self._process_event)
         self.realtime.on("server.response.text.delta", self._process_event)
-        self.realtime.on(
-            "server.response.function_call_arguments.delta", self._process_event
-        )
+        self.realtime.on("server.response.function_call_arguments.delta", self._process_event)
         self.realtime.on("server.response.output_item.done", self._on_output_item_done)
 
     def _log_event(self, event):
@@ -626,11 +599,8 @@ class RealtimeClient(RealtimeEventHandler):
     async def update_session(self, **kwargs):
         self.session_config.update(kwargs)
         use_tools = [
-            {**tool_definition, "type": "function"}
-            for tool_definition in self.session_config.get("tools", [])
-        ] + [
-            {**self.tools[key]["definition"], "type": "function"} for key in self.tools
-        ]
+            {**tool_definition, "type": "function"} for tool_definition in self.session_config.get("tools", [])
+        ] + [{**self.tools[key]["definition"], "type": "function"} for key in self.tools]
         session = {**self.session_config, "tools": use_tools}
         if self.realtime.is_connected():
             await self.realtime.send("session.update", {"session": session})
@@ -688,13 +658,9 @@ class RealtimeClient(RealtimeEventHandler):
             if item["type"] != "message":
                 raise Exception('Can only cancelResponse messages with type "message"')
             if item["role"] != "assistant":
-                raise Exception(
-                    'Can only cancelResponse messages with role "assistant"'
-                )
+                raise Exception('Can only cancelResponse messages with role "assistant"')
             await self.realtime.send("response.cancel")
-            audio_index = next(
-                (i for i, c in enumerate(item["content"]) if c["type"] == "audio"), -1
-            )
+            audio_index = next((i for i, c in enumerate(item["content"]) if c["type"] == "audio"), -1)
             if audio_index == -1:
                 raise Exception("Could not find audio on item to cancel")
             await self.realtime.send(
@@ -702,9 +668,7 @@ class RealtimeClient(RealtimeEventHandler):
                 {
                     "item_id": id,
                     "content_index": audio_index,
-                    "audio_end_ms": int(
-                        (sample_count / self.conversation.default_frequency) * 1000
-                    ),
+                    "audio_end_ms": int((sample_count / self.conversation.default_frequency) * 1000),
                 },
             )
             return {"item": item}

@@ -1,20 +1,19 @@
-import os
-from langchain_groq import ChatGroq
+"""Test for Python file creation using LLM."""
+
+from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from pydantic import BaseModel, Field
-from dotenv import load_dotenv
+from utils.ai_models import get_llm
 
 load_dotenv()
 
 
 class PythonFile(BaseModel):
-    """
-    Python file content.
-    """
+    """Python file content."""
 
     filename: str = Field(
         ...,
-        description="The name of the Python file with the extenstion .py",
+        description="The name of the Python file with the extension .py",
     )
     content: str = Field(
         ...,
@@ -22,13 +21,8 @@ class PythonFile(BaseModel):
     )
 
 
-llm = ChatGroq(
-    model="llama3-70b-8192",
-    api_key=os.environ.get("GROQ_API_KEY"),
-    temperature=0.1,
-    max_retries=2,
-)
-
+# Get LLM instance configured for Python code generation
+llm = get_llm("python_code")
 structured_llm = llm.with_structured_output(PythonFile)
 
 system_template = """
@@ -51,7 +45,7 @@ prompt_template = PromptTemplate(
 
 chain = prompt_template | structured_llm
 
-response = chain.invoke({"topic": "Print a random number from 500 to 1000."})
-
-print(response.filename)
-print(response.content)
+if __name__ == "__main__":
+    response = chain.invoke({"topic": "Print a random number from 500 to 1000."})
+    print(response.filename)
+    print(response.content)

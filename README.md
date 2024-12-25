@@ -1,6 +1,24 @@
 # Samantha OS¹ (Her)
 
-Samantha is an AI assistant inspired by the movie *Her*. This project is built to provide real-time voice interactions using the Realtime API and Chainlit. Samantha acts as an agent that calls various tools to handle user requests, such as querying stock prices, generating images, and creating Python scripts.
+<p align="center">
+  <img src="images/os1.gif" alt="Samantha OS¹ (source: https://fokkemars.com/os1)" width="500">
+  <br>
+  <em>Samantha OS¹ loading animation (<a href="https://fokkemars.com/os1">fokkemars.com/os1</a>)</em>
+</p>
+
+Samantha is an AI assistant inspired by the movie *Her*. This project is built to provide real-time voice interactions using the Realtime API and Chainlit. Samantha acts as an agent that calls various tools to handle user requests, such as querying stock prices, executing SQL commands, generating images, and creating Python scripts.
+
+## YouTube Demo
+Watch a 2-minute demonstration of Samantha in action, where I showcase real-time voice interactions and various capabilities of the AI assistant.
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=qVstKgrwX_o">
+    <img src="images/thumbnail_short_demo.png" alt="YouTube Demo" width="500">
+  </a>
+  <br>
+  <em>👆 Click the image to watch the demo on YouTube</em>
+</p>
+
 
 ## Setup and Running
 
@@ -58,6 +76,7 @@ This project includes several powerful tools:
 - **LinkedIn Post Drafting**: Create LinkedIn posts based on given topics using an AI model.
 - **Python Script Generation**: Generate Python scripts on-demand based on user-provided topics.
 - **Python File Execution**: Create and execute Python scripts directly from the assistant.
+- **🆕 Database Queries**: Natural language to SQL conversion for database interactions, supporting multiple SQL dialects and providing formatted results in markdown tables.
 
 ## License
 
