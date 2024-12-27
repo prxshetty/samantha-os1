@@ -89,7 +89,7 @@ async def execute_sql_handler(question: str):
         {dialect_help["notes"]}
 
         # Database Schema
-        {{schema}}
+        {SCHEMA_DESCRIPTION}
 
         # Example Queries for {dialect.upper()}
         {dialect_help["examples"]}
@@ -105,12 +105,12 @@ async def execute_sql_handler(question: str):
         """
 
         prompt_template = PromptTemplate(
-            input_variables=["schema", "question"],
+            input_variables=["question"],
             template=system_template,
         )
 
         chain = prompt_template | structured_llm
-        sql_response = chain.invoke({"schema": SCHEMA_DESCRIPTION, "question": question})
+        sql_response = chain.invoke({"question": question})
 
         # Log the generated SQL
         logger.info(f"💡 Generated SQL query: {sql_response.query}")
