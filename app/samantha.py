@@ -5,8 +5,10 @@ Derived from https://github.com/Chainlit/cookbook/tree/main/realtime-assistant
 import os
 import asyncio
 import traceback
+import json
 
 import chainlit as cl
+from cl import Message
 from uuid import uuid4
 from chainlit.logger import logger
 
@@ -18,6 +20,7 @@ async def setup_openai_realtime():
     """Instantiate and configure the OpenAI Realtime Client"""
     openai_realtime = RealtimeClient()
     cl.user_session.set("track_id", str(uuid4()))
+    cl.user_session.set("conversation_items", [])
 
     async def handle_conversation_updated(event):
         item = event.get("item")
@@ -43,8 +46,22 @@ async def setup_openai_realtime():
 
     async def handle_item_completed(item):
         """Used to populate the chat context with transcription once an item is completed."""
-        # print(item) # TODO
-        pass
+        # Extract transcription from completed item
+        transcript = next(
+            (content["text"] for content in item.get("content", []) 
+             if content.get("type") == "transcript"),
+            None
+        )
+        if transcript:
+            await Message(
+                content=transcript,
+                author="Transcription",
+            ).send()
+        conversation_items = cl.user_session.get("conversation_items", [])
+        conversation_items.append(item)
+        cl.user_session.set("conversation_items", conversation_items)
+        # For debugging purposes
+        # print(json.dumps(item, indent=2))
 
     async def handle_conversation_interrupt(event):
         """Used to cancel the client previous audio playback."""
@@ -93,8 +110,12 @@ async def on_audio_start():
         openai_realtime: RealtimeClient = cl.user_session.get("openai_realtime")
         await openai_realtime.connect()
         logger.info("Connected to OpenAI realtime")
-        # TODO: might want to recreate items to restore context
-        # openai_realtime.create_conversation_item(item)
+        
+        # Restored previous context by recreating conversation items
+        previous_items = cl.user_session.get("conversation_items", [])
+        for item in previous_items:
+            await openai_realtime.create_conversation_item(item)
+            
         return True
     except Exception as e:
         print(traceback.format_exc())
